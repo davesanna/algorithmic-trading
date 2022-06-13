@@ -1,24 +1,22 @@
-import random
-import pygame
-from enum import Enum
-from collections import namedtuple
+#!/usr/bin/env python
 
-from utils import Direction, Colors
+import pygame
+from pygame.locals import *
+from game.snake import SnakeGame
+
 
 def main():
-
-    BLOCK_SIZE = 20
-    SPEED = 40
-
     pygame.init()
-    font = pygame.font.Font("arial.ttf", 25)
+    game = SnakeGame()
 
-    point = namedtuple("Point", "x, y")
+    while True:
+        game_over, score = game.play_step()
+
+        if game_over:
+            break
+    print(f"Final Score: {score}")
+    pygame.quit()
 
 
-
-
-
-if __name__ == "main":
-    
+if __name__ == "__main__":
     main()
