@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import pygame
+import matplotlib.pyplot as plt
 from pygame.locals import *
 from game.snake import SnakeGameAI
-from src.agent.agent import Agent
+from agent.agent import Agent
+from utils import plot
 
 
 def train():
@@ -13,6 +14,8 @@ def train():
     record = 0
     agent = Agent()
     game = SnakeGameAI()
+
+    plt.ion()
 
     while True:
         # get previous state
@@ -26,9 +29,7 @@ def train():
         state_new = agent.get_state(game)
 
         # train short memory
-        agent.train_short_memory(
-            state_old, final_move, reward, state_new, state_new, game_over
-        )
+        agent.train_short_memory(state_old, final_move, reward, state_new, game_over)
 
         # remember
         agent.remember(state_old, final_move, reward, state_new, game_over)
@@ -41,11 +42,16 @@ def train():
 
             if score > record:
                 record = score
-                # agent.model.save()
+                agent.model.save()
 
             # plot results
-
+            total_score += score
+            mean_score = total_score / agent.n_games
+            plot_scores.append(score)
+            plot_mean_scores.append(mean_score)
             print("Game: ", agent.n_games, "Score: ", score, "Record: ", record)
+
+            plot(plot_scores, plot_mean_scores)
 
 
 if __name__ == "__main__":

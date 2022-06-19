@@ -2,9 +2,9 @@ from typing import final
 import torch
 import random
 import numpy as np
-from src import game
-from src.game.snake import SnakeGameAI
-from src.utils import Direction, Point
+from game.snake import SnakeGameAI
+from utils import Direction, Point
+from model.model import LinearQNet, QTrainer
 
 from collections import deque
 
@@ -17,12 +17,14 @@ class Agent:
     def __init__(self) -> None:
         self.n_games = 0
         self.epsilon = 0  # control randomness
-        self.gamma = 0  # discount rate
+        self.gamma = 0.9  # discount rate, 0<x<1
         self.memory = deque(
             maxlen=MAX_MEMORY
         )  # removes automatically from left side (popleft) when maxmemory is exceded
-        self.model = None  # TODO
-        self.trainer = None  # TODO
+        self.model = LinearQNet(11, 256, 3)  # TODO
+        self.trainer = QTrainer(
+            model=self.model, learning_rate=LR, gamma=self.gamma
+        )  # TODO
 
     def get_state(self, game):
         head = game.head
@@ -76,7 +78,9 @@ class Agent:
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
         else:
-            prediction = self.model.predict(torch.tensor(state), dtype=torch.float)
+            prediction = self.model(
+                torch.tensor(state, dtype=torch.float)
+            )  # pytorch does not have .predict; calling the model with the input, directly executes the implemented forward method
             move = torch.argmax(prediction).item()
 
         final_move[move] = 1
@@ -95,7 +99,7 @@ class Agent:
 
         sample = (
             random.sample(self.memory, BATCH_SIZE)
-            if len(self.memory > BATCH_SIZE)
+            if len(self.memory) > BATCH_SIZE
             else self.memory
         )
 
